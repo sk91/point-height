@@ -1,0 +1,23 @@
+#!/bin/env node
+
+var calculator = require('../index');
+
+var usage = "Usage $0 --file FILE_PATH [--out OUT_PATH] [--radius RADIUS]";
+
+
+
+var argv = require('optimist')
+	.usage(usage)
+	.demand(['file'])
+	.alias("file", "f")
+	.describe("file", "Imput csv file to load")
+	.alias("out", "o")
+	.default("out", "std stream")
+	.describe("out", "Output filepath.")
+	.describe('radius', "Radius to use")
+	.alias('radius', 'r')
+	.default('radius', calculator.RADIUS)
+	.argv;
+
+
+calculator.process(argv.file, argv.out);
