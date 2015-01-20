@@ -1,7 +1,7 @@
 var csv = require('ya-csv');
 var csv_writer = require("csv-write-stream");
 var fs = require('fs');
-var PointsList = require('./lib/point-list');
+var OrderedPointsList = require('./lib/ordered-point-list');
 var Point = require('./lib/point');
 
 exports.process = process_records;
@@ -19,7 +19,7 @@ function process_records(input_file, output_path, radius){
 
 	radius = radius || RADIUS;
 
-	var points = new PointsList();
+	var points = new OrderedPointsList();
 
 
 	reader.addListener('data', function(point){
