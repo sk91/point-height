@@ -6,14 +6,16 @@ var Point = require('./lib/point');
 exports.process = process_records;
 
 var RADIUS = exports.RADIUS = 5;
-var TIMER_NAME = 'Points computed in';
-
+var TIMER_NAME = 'Total time';
+var LOAD_TIMER_NAME = 'Loading points';
+var COMPUTE_TIMER_NAME = 'Computing'
 var time = 0;
 
 function process_records(input_file, output_path, radius, count_time) {
 	var points, writer, stream;
 
 	count_time && console.time(TIMER_NAME);
+	count_time && console.time(LOAD_TIMER_NAME)
 
 	var reader = csv.createCsvFileReader(input_file, {
 		'separator': ',',
@@ -41,10 +43,13 @@ function process_records(input_file, output_path, radius, count_time) {
 	});
 
 	reader.addListener('end', function() {
+		count_time && console.timeEnd(LOAD_TIMER_NAME);
+		count_time && console.time(COMPUTE_TIMER_NAME);
 		process_list(points, radius, writer);
 	});
 
 	writer.addListener('end', function() {
+		count_time && console.timeEnd(COMPUTE_TIMER_NAME);
 		count_time && console.timeEnd(TIMER_NAME);
 	});
 
