@@ -32,5 +32,4 @@ var argv = require('optimist')
 
 	.argv;
 
-console.log ()
 calculator.process(argv.file, argv.out, argv.radius, argv.time);

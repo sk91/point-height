@@ -1,5 +1,9 @@
 var csv = require('ya-csv');
 var fs = require('fs');
+var util = require('util');
+var ProgressBar = require('progress');
+var spinner = require('simple-spinner');
+
 var OrderedPointsList = require('./lib/ordered-point-list');
 var Point = require('./lib/point');
 
@@ -7,15 +11,23 @@ exports.process = process_records;
 
 var RADIUS = exports.RADIUS = 5;
 var TIMER_NAME = 'Total time';
-var LOAD_TIMER_NAME = 'Loading points';
-var COMPUTE_TIMER_NAME = 'Computing'
+var LOAD_TIMER_NAME = 'Loading time';
+var COMPUTE_TIMER_NAME = 'Compute time'
 var time = 0;
 
 function process_records(input_file, output_path, radius, count_time) {
 	var points, writer, stream;
+	var ui = count_time && output_path !== 'std stream';
 
-	count_time && console.time(TIMER_NAME);
-	count_time && console.time(LOAD_TIMER_NAME)
+	if (count_time) {
+		console.time(TIMER_NAME);
+		console.time(LOAD_TIMER_NAME);
+	}
+
+	if (ui) {
+		spinner.start(100);
+		util.print(' Loading');
+	}
 
 	var reader = csv.createCsvFileReader(input_file, {
 		'separator': ',',
@@ -38,20 +50,43 @@ function process_records(input_file, output_path, radius, count_time) {
 	writer = csv.createCsvStreamWriter(stream);
 
 	reader.addListener('data', function(point) {
-		point = point.map(parseFloat);
-		points.add(new Point(point[0], point[1], point[2]));
+		setImmediate(function() {
+			point = point.map(parseFloat);
+			points.add(new Point(point[0], point[1], point[2]));
+		});
 	});
 
 	reader.addListener('end', function() {
-		count_time && console.timeEnd(LOAD_TIMER_NAME);
-		count_time && console.time(COMPUTE_TIMER_NAME);
-		process_list(points, radius, writer);
+
+		setImmediate(function() {
+			var bar;
+
+			ui && spinner.stop();
+
+			if (count_time) {
+				console.timeEnd(LOAD_TIMER_NAME);
+				console.time(COMPUTE_TIMER_NAME);
+			}
+
+			if (ui) {
+				bar = new ProgressBar('Computing: :percent [:bar] 100% Time::elapseds ', {
+					total: points.count()
+				});
+				writer.addListener('progress', function() {
+					bar.tick();
+				});
+			}
+			process_list(points, radius, writer);
+		});
+
 	});
 
 	writer.addListener('end', function() {
 		count_time && console.timeEnd(COMPUTE_TIMER_NAME);
 		count_time && console.timeEnd(TIMER_NAME);
 	});
+
+
 
 }
 
@@ -61,6 +96,7 @@ function process_list(points, radius, writer) {
 		setImmediate(function() {
 			var record = create_record(point, points, radius);
 			writer.writeRecord(record);
+			writer.emit('progress');
 		});
 	});
 	setImmediate(function() {
