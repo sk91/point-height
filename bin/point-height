@@ -6,19 +6,31 @@ var calculator = require('../index');
 var usage = "Usage $0 --file FILE_PATH [--out OUT_PATH] [--radius RADIUS]";
 
 
-
 var argv = require('optimist')
 	.usage(usage)
+
+	//file
 	.demand(['file'])
 	.alias("file", "f")
 	.describe("file", "Imput csv file to load")
+
+	//output
 	.alias("out", "o")
 	.default("out", "std stream")
 	.describe("out", "Output filepath.")
+
+	//radius
 	.describe('radius', "Radius to use")
 	.alias('radius', 'r')
 	.default('radius', calculator.RADIUS)
+
+	//time
+	.boolean('time')
+	.alias('time', 't')
+	.describe('time', 'Print run time at the end')
+	.default('time', false)
+
 	.argv;
 
-
-calculator.process(argv.file, argv.out);
+console.log ()
+calculator.process(argv.file, argv.out, argv.radius, argv.time);
