@@ -14,13 +14,18 @@ function process_records(input_file, output_path, radius){
 		'separator': ',',
 		'quote': '"',
 		'escape': '"',
-		'comment': ''
+		'comment': '#'
 	});
 
 	radius = radius || RADIUS;
 
 	var points = new OrderedPointsList();
-
+	var stream;
+	if(output_path === 'std stream'){
+		stream = process.stdout;
+	}else{
+		stream = fs.createWriteStream(output_path,{flags: 'w'});
+	}
 
 	reader.addListener('data', function(point){
 		point = point.map(parseFloat)
@@ -28,29 +33,21 @@ function process_records(input_file, output_path, radius){
 	});
 
 	reader.addListener('end', function(){
-		process_list(points, radius, output_path)
+		process_list(points, radius, stream)
 	});
 	
 }
 
-function process_list(points, radius, output){
-	var writer = csv_writer({sendHeaders: true, headers:['x', 'y', 'z' , 'count', 'sum', 'average', 'deviation']});
-	if(output === 'std stream'){
-		writer.pipe(process.stdout);	
-	}else{
-		writer.pipe(fs.createWriteStream(output,{flags: 'w'}));
-	}
-	var rs = new require('stream').Readable({ objectMode: true });
-	rs.index = 0;
-	rs._read = function(){
-		if(this.index >= points.count())
-			return rs.push(null);
-		var point = points.get(this.index++);
-		var record = create_record(point, points, radius);
-		rs.push(record);
-	};
-
-	rs.pipe(writer);
+function process_list(points, radius, output_stream){
+	var writer = csv.createCsvStreamWriter(output_stream);
+	writer.writeRecord(["x", "y", "z", "count", "sum", "average", "deviation"]);
+	points.forEach(function (point) {
+		setImmediate(function(){
+			var record = create_record(point, points, radius);
+			writer.writeRecord(record);
+		});
+	});
+	
 }
 
 function create_record(point, points,radius){
@@ -60,15 +57,15 @@ function create_record(point, points,radius){
 	var avg = sum_of_heights / count;
 	var deviation = point.z - avg;
 
-	return {
-		x: point.x, 
-		y: point.y,
-		z: point.z,
-		count: count, 
-		sum: sum_of_heights, 
-		average: avg,
-		deviation: deviation
-	};
+	return [
+		point.x, 
+		point.y,
+		point.z,
+		count, 
+		sum_of_heights, 
+		avg,
+		deviation
+	]
 }
 
 
