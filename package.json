@@ -1,24 +1,16 @@
 {
   "name": "point-height",
   "version": "1.0.0",
-  "description": "",
+  "description": "Scientific computing tool. Given a csv data file containig x,y,z points coordinates and a radius, compute for each point number of other points in radius, height-sum, average height, and deviation",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Max",
+  "author": "Maxim Kovalov <max.kovalov@gmail.com>",
   "bin": "bin/point-height",
   "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/sk91/point-height.git"
+    "url": "https://github.com/sk91/point-height.git"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://github.com/gruntjs/grunt-cli/blob/master/LICENSE-MIT"
-    }
-  ],
+  "licenses": "MIT",
   "dependencies": {
     "optimist": "^0.6.1",
     "progress": "^1.1.8",
